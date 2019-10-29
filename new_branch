@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+require_relative './jira_rest'
+require 'highscore'
+
+
+
+class CheckoutGitBranch
+  attr_accessor :selected_issue, :board, :issues, :feature_or_bug
+  def initialize
+    @board = JiraBoardItems.new
+    @issues = @board.issues
+    @selected_issue = ''
+    @feature_or_bug = 'feature'
+  end
+
+  def get_board_issue
+    puts "which branch would you like to chekcout? (e.g. 190)"
+    puts "'sa' to see assigned, 'su' to see unassigned"
+    branch = gets.chomp
+
+    if branch.to_i > 0
+        @selected_issue = issues.select{|i| i[:key] == "ATS-#{branch}" }.first
+    elsif branch == 'sa'
+      board.see_issues_for board.issue_user
+      get_board_issue
+    elsif branch == 'su'
+      puts 'suuuuuh dude'
+      board.see_issues_for nil
+      get_board_issue
+    else
+      puts "unrecognized command"
+      get_board_issue
+    end
+  end
+
+  def get_feature_or_bug
+    puts "feature or bug(b) leave blank for feature"
+    input = gets.chomp
+    if input == 'b'
+      feature_or_bug = 'Bug'
+    end
+  end
+
+  def checkout_for_selected_issue
+    puts "\n\n~~~~>New Branches Only<~~~~~~~\n\n"
+    get_feature_or_bug
+    get_board_issue
+    puts selected_issue
+    text = Highscore::Content.new(@selected_issue[:summary])
+    keywords = text.keywords.top(3)
+    issue_summary =  keywords.join('_')
+    `git checkout -b #{feature_or_bug}/#{selected_issue[:key]}/#{issue_summary}`
+  end
+end
+
+
+gb = CheckoutGitBranch.new()
+gb.checkout_for_selected_issue

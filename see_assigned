@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require_relative './jira_rest.rb'
+
+j = JiraBoardItems.new
+
+j.see_issues_for j.issue_user
