@@ -38,15 +38,28 @@ class JiraBoardItems
       assignee = issue['fields']['assignee'] ? issue['fields']['assignee']['emailAddress'] : nil
       status = issue['fields']['status']['statusCategory']['name']
       summary = issue['fields']['summary']
-      {key: issue['key'], summary: summary,assignee: assignee, status: status, backlog?: is_in_backlog}
+      issue_url = "https://randallreilly.atlassian.net/browse/#{issue[:key]}"
+      {key: issue['key'].split('-').last, summary: summary,assignee: assignee, status: status, backlog?: is_in_backlog, issue_url: issue_url}
     end
+  end
+
+  def see_all_issues
+    puts "\n\nhttps://randallreilly.atlassian.net/secure/RapidBoard.jspa?rapidView=109&projectKey=ATS"
+    puts "\n\n#{"~"*50}"
+    issues.each do |issue|
+    #   puts "\n\n#{issue[:key]} - #{issue[:summary]} -- #{issue[:assignee]}\nview: https://randallreilly.atlassian.net/browse/#{issue[:key]}\n"
+      pp issue
+      puts " "
+    end
+    # pp issues
+    puts "\n\n#{"~"*50}"
   end
 
   def see_issues_for(user=issue_user)
     puts "\n\nhttps://randallreilly.atlassian.net/secure/RapidBoard.jspa?rapidView=109&projectKey=ATS"
     puts "\n\n#{"~"*50}"
     issues.select{ |issue| issue[:assignee] == user && !issue[:backlog?] }.each_with_index do |issue|
-      puts "\n\n#{issue[:key]} - #{issue[:summary]}\nview: https://randallreilly.atlassian.net/browse/#{issue[:key]}\n"
+      puts "\n\n#{issue[:key]} - #{issue[:summary]} -- #{issue[:assignee]}\nview: #{issue[:issue_url]}\n"
     end
     puts "\n\n#{"~"*50}"
   end

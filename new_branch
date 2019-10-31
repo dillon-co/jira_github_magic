@@ -5,12 +5,12 @@ require 'highscore'
 
 
 class CheckoutGitBranch
-  attr_accessor :selected_issue, :board, :issues, :feature_or_bug
+  attr_accessor :selected_issue, :board, :issues, :ticket_type
   def initialize
     @board = JiraBoardItems.new
     @issues = @board.issues
     @selected_issue = ''
-    @feature_or_bug = 'feature'
+    @ticket_type = 'feature'
   end
 
   def get_board_issue
@@ -19,7 +19,7 @@ class CheckoutGitBranch
     branch = gets.chomp
 
     if branch.to_i > 0
-        @selected_issue = issues.select{|i| i[:key] == "ATS-#{branch}" }.first
+        @selected_issue = issues.select{|i| i[:key] == "#{branch}" }.first
     elsif branch == 'sa'
       board.see_issues_for board.issue_user
       get_board_issue
@@ -33,23 +33,25 @@ class CheckoutGitBranch
     end
   end
 
-  def get_feature_or_bug
+  def get_ticket_type
     puts "feature or bug(b) leave blank for feature"
     input = gets.chomp
-    if input == 'b'
-      feature_or_bug = 'Bug'
+    if input.length > 0
+      input_with_dasheds_instead_of_spaces = input.gsub(' ', '-')
+      @ticket_type = input_with_dasheds_instead_of_spaces
     end
   end
 
   def checkout_for_selected_issue
     puts "\n\n~~~~>New Branches Only<~~~~~~~\n\n"
-    get_feature_or_bug
+    get_ticket_type
+    puts "\n\nYou've selected #{ticket_type}\n\n"
     get_board_issue
     puts selected_issue
     text = Highscore::Content.new(@selected_issue[:summary])
     keywords = text.keywords.top(3)
-    issue_summary =  keywords.join('_')
-    `git checkout -b #{feature_or_bug}/#{selected_issue[:key]}/#{issue_summary}`
+    issue_summary =  keywords.join('-').downcase
+    `git checkout -b #{ticket_type}/#{selected_issue[:key]}/#{issue_summary}`
   end
 end
 
